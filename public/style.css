@@ -91,7 +91,8 @@ textarea{min-height:90px;resize:vertical}
 @media(min-width:820px){.hero .wrap{grid-template-columns:1.2fr .8fr;padding:54px 0 60px}}
 .hero h1{font-size:clamp(1.9rem,5vw,3rem);margin-bottom:.3em}
 .hero p{max-width:44ch;color:var(--muted);margin:0 0 20px}
-.hero .logo{width:min(300px,70vw);justify-self:center;border-radius:50%;box-shadow:0 0 0 1px var(--line2),0 0 80px rgba(200,204,212,.12)}
+.logo3d{position:relative;width:min(300px,70vw);justify-self:center;transform-style:preserve-3d}
+.hero .logo{width:100%;border-radius:50%;box-shadow:0 0 0 1px var(--line2),0 0 80px rgba(200,204,212,.14)}
 .chips{display:flex;gap:8px;flex-wrap:wrap}
 .chip{padding:6px 16px;border-radius:999px;border:1px solid var(--line);background:var(--panel);cursor:pointer;font-size:.92rem;color:var(--muted)}
 .chip:hover{border-color:var(--steel);color:var(--text)}
@@ -179,3 +180,47 @@ footer.foot a{color:var(--silver)}
 @keyframes tin{from{transform:translateY(10px);opacity:0}}
 .spin{width:26px;height:26px;border:3px solid var(--line2);border-top-color:var(--silver);border-radius:50%;animation:sp .8s linear infinite;margin:40px auto}
 @keyframes sp{to{transform:rotate(360deg)}}
+
+/* ---------- انیمیشن و جلوه‌ها ---------- */
+.dust{position:absolute;inset:0;pointer-events:none;opacity:.75}
+.logo3d .ring{position:absolute;inset:-9px;border-radius:50%;pointer-events:none;
+  background:conic-gradient(from 0deg,transparent 0 50%,rgba(255,255,255,.95) 78%,transparent 100%);
+  -webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 2px));mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 2px));
+  animation:spin 7s linear infinite}
+.logo3d::after{content:"";position:absolute;inset:-30px;border-radius:50%;z-index:-1;background:radial-gradient(circle,rgba(210,214,222,.16),transparent 68%);animation:pulse 4.5s ease-in-out infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{50%{opacity:.4;transform:scale(1.08)}}
+
+.hero h1.metal,.brand .metal{background-size:220% 100%;animation:shine 7s linear infinite}
+@keyframes shine{from{background-position:120% 0}to{background-position:-100% 0}}
+
+.marq{overflow:hidden;border-block:1px solid var(--line);background:var(--panel);direction:ltr}
+.marq .tr{display:flex;width:max-content;animation:marq 40s linear infinite}
+.marq span{padding:11px 26px;letter-spacing:.4em;font-size:.78rem;color:var(--steel);white-space:nowrap}
+.marq span:nth-child(even){color:var(--silver);letter-spacing:0;padding-inline:6px}
+@keyframes marq{to{transform:translateX(-50%)}}
+
+.top{transition:border-color .3s,box-shadow .3s,background .3s}
+.scrolled .top{border-bottom-color:var(--line2);box-shadow:0 14px 34px -20px #000;background:rgba(5,5,6,.95)}
+
+.pcard,.card{position:relative}
+.pcard{transition:border-color .2s,transform .35s cubic-bezier(.2,.8,.2,1),box-shadow .35s}
+.pimg img{transition:transform .7s cubic-bezier(.2,.8,.2,1)}
+.pcard::after,.card::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:0;transition:opacity .3s;
+  background:radial-gradient(260px circle at var(--mx,50%) var(--my,50%),rgba(255,255,255,.09),transparent 65%)}
+@media(hover:hover) and (pointer:fine){
+  .pcard:hover{transform:translateY(-6px);box-shadow:0 22px 40px -22px rgba(0,0,0,.9),0 0 0 1px var(--line2)}
+  .pcard:hover .pimg img{transform:scale(1.08)}
+  .pcard:hover::after,.card:hover::after{opacity:1}
+  .chip,.btn,.iconbtn{will-change:transform}
+  .iconbtn:hover{transform:translateY(-2px);border-color:var(--steel)}
+}
+.btn.primary{position:relative;overflow:hidden}
+.btn.primary::before{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,.65) 50%,transparent 70%);transform:translateX(-120%);transition:transform .7s}
+.btn.primary:hover::before{transform:translateX(120%)}
+.chip{transition:background .2s,color .2s,border-color .2s,transform .2s}
+.chip:active{transform:scale(.95)}
+.tabbar a{transition:color .2s,transform .2s}.tabbar a:active{transform:scale(.9)}
+.st{transition:transform .2s}
+tr.link td{transition:background .2s}
+.toast{animation:tin .35s cubic-bezier(.2,.9,.3,1.3)}
