@@ -1,0 +1,26 @@
+{
+  "name": "kian-accessor-shop",
+  "version": "1.0.0",
+  "description": "فروشگاه اینترنتی کیان اکسسور",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test.js",
+    "preview": "node preview/build.js"
+  },
+  "author": "",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "better-sqlite3": "^13.0.3",
+    "dotenv": "^18.0.9",
+    "express": "^4.22.3",
+    "express-rate-limit": "^8.7.1",
+    "helmet": "^8.3.0",
+    "multer": "^2.5.0",
+    "vazirmatn": "^33.0.3"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
