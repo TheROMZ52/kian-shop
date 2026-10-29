@@ -100,8 +100,9 @@ route(/^\/?$/, async () => {
   <section class="hero"><div class="wrap">
     <div><h1 class="metal">${esc(c.shop_name)}</h1><p>${esc(c.tagline)}. سفارش بدهید، با کد رهگیری وضعیتش را ببینید و مستقیم با ما در ارتباط باشید.</p>
       <div class="row" style="max-width:340px"><a class="btn primary" href="#/products">مشاهده محصولات</a><a class="btn" href="#/track">پیگیری سفارش</a></div></div>
-    <img class="logo" src="img/logo.jpg" alt="${esc(c.shop_name)}">
+    <div class="logo3d"><i class="ring"></i><img class="logo" src="img/logo.jpg" alt="${esc(c.shop_name)}"></div>
   </div></section>
+  <div class="marq" aria-hidden="true"><div class="tr">${'<span>BELTS</span><span>✦</span><span>BAGS</span><span>✦</span><span>ACCESSORIES</span><span>✦</span>'.repeat(8)}</div></div>
   <div class="wrap page">
     <div class="chips">${cats.map((x) => `<a class="chip" href="#/products?category=${x.id}">${esc(x.name)}<small>${fa(x.count)}</small></a>`).join('')}</div>
     <div class="perks"><div><b>ثبت سفارش چندمحصولی</b><span>همه‌چیز را در یک سبد بخرید</span></div><div><b>پیگیری با کد رهگیری</b><span>هر مرحله از سفارش قابل مشاهده است</span></div><div><b>ارتباط مستقیم با مالک</b><span>تلفن و تلگرام در دسترس است</span></div></div>
@@ -361,7 +362,7 @@ async function render(keepScroll) {
     if (!isStaff()) { $('#app').innerHTML = shell('<div class="wrap page"><div class="empty"><b>دسترسی ندارید</b><a class="btn" href="#/login">ورود مدیر</a></div></div>', ''); return; }
     if (!window.renderAdmin) { await new Promise((r) => { const s = document.createElement('script'); s.src = 'admin.js?v=1'; s.onload = r; s.onerror = r; document.head.appendChild(s); }); }
     if (seq !== renderSeq) return;
-    try { const [tab, html] = await window.renderAdmin(path, qs); if (seq === renderSeq) { $('#app').innerHTML = shell(html, tab); window.adminAfter && window.adminAfter(path); } } catch (e) { $('#app').innerHTML = shell(fail(e), ''); }
+    try { const [tab, html] = await window.renderAdmin(path, qs); if (seq === renderSeq) { $('#app').innerHTML = shell(html, tab); window.adminAfter && window.adminAfter(path); window.fx && fx.enter(keepScroll); } } catch (e) { $('#app').innerHTML = shell(fail(e), ''); }
     return;
   }
   let hit = null;
@@ -376,6 +377,7 @@ async function render(keepScroll) {
     $('#app').innerHTML = shell(html, tab);
     document.title = (S.cfg.shop_name || 'کیان اکسسور') + (tab === 'home' ? ' | ' + S.cfg.tagline : '');
     window.scrollTo(0, keepScroll ? y : 0);
+    window.fx && fx.enter(keepScroll);
   } catch (e) { if (seq === renderSeq) $('#app').innerHTML = shell(fail(e), ''); }
 }
 window.addEventListener('hashchange', () => render());
