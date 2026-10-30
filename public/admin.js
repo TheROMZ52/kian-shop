@@ -100,6 +100,7 @@
         <div class="row">${f('shop_name', 'نام فروشگاه')}${f('tagline', 'شعار')}</div>
         <div class="row">${f('owner_phone', 'شماره مالک', 1)}${f('admin_telegram', 'آیدی تلگرام ادمین', 1)}</div>
         <div class="row">${f('telegram_link', 'لینک دایرکت تلگرام', 1)}${f('instagram', 'آیدی اینستاگرام', 1)}</div>
+        <div class="row">${f('business_city', 'شهر فروشگاه (برای نقشه/سئوی محلی، اختیاری)')}${f('business_address', 'آدرس فروشگاه (اختیاری)')}</div>
         <div class="row">${f('shipping_cost', 'هزینه ارسال (تومان)', 1)}${f('free_shipping_over', 'ارسال رایگان بالای (تومان؛ ۰ = غیرفعال)', 1)}</div>
         ${f('payment_info', 'متن راهنمای پرداخت (پس از ثبت سفارش نمایش داده می‌شود)', 0, 1)}${f('announcement', 'اعلان بالای سایت (خالی = نمایش داده نشود)')}
         <div class="err" id="ferr"></div><button class="btn primary" style="margin-top:14px">ذخیره تنظیمات</button></form>`);
@@ -126,7 +127,7 @@
           if (window.__lastPending != null && s.pending > window.__lastPending) {
             toast('سفارش جدید ثبت شد 🛍');
             try { const a = new (window.AudioContext || window.webkitAudioContext)(); const o = a.createOscillator(); o.connect(a.destination); o.frequency.value = 880; o.start(); o.stop(a.currentTime + 0.15); } catch (e) { /* ignore */ }
-            if (location.hash.startsWith('#/admin') && !/products\/|orders\//.test(location.hash)) render(true);
+            if (window.curPath().startsWith('/admin') && !/products\/|orders\//.test(window.curPath())) render(true);
           }
           window.__lastPending = s.pending;
         } catch (e) { /* ignore */ }

@@ -12,8 +12,9 @@ fs.writeFileSync(path.join(dist, '.nojekyll'), '');
 
 const idx = path.join(dist, 'index.html');
 let html = fs.readFileSync(idx, 'utf8');
-if (!html.includes('<script src="app.js')) throw new Error('index.html: تگ app.js پیدا نشد');
-html = html.replace('<script src="app.js', '<script src="preview-shim.js"></script>\n<script src="app.js');
+if (!html.includes('<script defer src="fx.js')) throw new Error('index.html: تگ fx.js پیدا نشد');
+html = html.replace('<script defer src="fx.js', '<script src="preview-shim.js"></script>\n<script defer src="fx.js');
+html = html.replace('content="index,follow"', 'content="noindex,nofollow"'); // نسخه نمایشی نباید ایندکس شود
 html = html.replace('<title>', '<title>[Preview] ');
 fs.writeFileSync(idx, html);
 

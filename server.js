@@ -2,6 +2,7 @@
 require('dotenv').config({ quiet: true });
 const express = require('express');
 const helmet = require('helmet');
+const compression = require('compression');
 const rateLimit = require('express-rate-limit');
 const multer = require('multer');
 const bcrypt = require('bcryptjs');
@@ -12,6 +13,7 @@ const Database = require('better-sqlite3');
 
 const D = require('./db');
 const O = require('./orders');
+const seo = require('./seo');
 const { now, err, normPhone, str, intOrNull, sha256, toEnDigits } = require('./util');
 
 const GOOGLE_CLIENT_ID = (process.env.GOOGLE_CLIENT_ID || '').trim();
@@ -36,6 +38,7 @@ app.use(helmet({
   crossOriginEmbedderPolicy: false,
   crossOriginResourcePolicy: { policy: 'same-site' },
 }));
+app.use(compression());
 app.use(express.json({ limit: '200kb' }));
 
 // ---------- ابزارهای عمومی ----------
@@ -79,7 +82,7 @@ const trackLimiter = rateLimit({ windowMs: 10 * 60 * 1000, limit: 30, standardHe
 const orderLimiter = rateLimit({ windowMs: 10 * 60 * 1000, limit: 15, standardHeaders: true, legacyHeaders: false, message: { error: 'تعداد ثبت سفارش زیاد است؛ کمی صبر کنید' } });
 
 // ---------- پیکربندی عمومی ----------
-const PUBLIC_KEYS = ['shop_name', 'tagline', 'owner_phone', 'admin_telegram', 'telegram_link', 'instagram', 'shipping_cost', 'free_shipping_over', 'payment_info', 'announcement'];
+const PUBLIC_KEYS = ['shop_name', 'tagline', 'owner_phone', 'admin_telegram', 'telegram_link', 'instagram', 'shipping_cost', 'free_shipping_over', 'payment_info', 'announcement', 'business_city', 'business_address'];
 app.get('/api/config', (req, res) => {
   const s = D.settings();
   const cfg = Object.fromEntries(PUBLIC_KEYS.map((k) => [k, s[k]]));
@@ -447,9 +450,16 @@ app.use('/api/admin', admin);
 
 // ---------- فایل‌های ایستا ----------
 app.use('/uploads', express.static(UP, { maxAge: '30d', immutable: true, index: false, setHeaders: (r) => r.setHeader('X-Content-Type-Options', 'nosniff') }));
-app.use(express.static(path.join(__dirname, 'public'), { maxAge: 0, etag: true, index: 'index.html' }));
+seo.mount(app); // robots.txt, sitemap.xml, llms.txt
+const PUB = path.join(__dirname, 'public');
+app.get('/index.html', (req, res) => res.redirect(301, '/'));
+const longCache = { maxAge: '30d', immutable: true, index: false };
+app.use('/vendor', express.static(path.join(PUB, 'vendor'), longCache));
+app.use('/fonts', express.static(path.join(PUB, 'fonts'), longCache));
+app.use('/img', express.static(path.join(PUB, 'img'), { maxAge: '7d', index: false }));
+app.use(express.static(PUB, { maxAge: '1h', etag: true, index: false }));
 app.use('/api', (req, res) => res.status(404).json({ error: 'پیدا نشد' }));
-app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
+app.get('*', seo.render); // صفحات اپلیکیشن با متای سمت سرور؛ مسیر ناشناخته ← ۴۰۴ واقعی
 
 // ---------- خطاها ----------
 app.use((e, req, res, next) => { // eslint-disable-line no-unused-vars
