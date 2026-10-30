@@ -1,8 +1,13 @@
 'use strict';
 /* انیمیشن‌ها: GSAP + ScrollTrigger + Lenis (خودمیزبان). اگر کاربر «کاهش حرکت» را فعال کرده باشد همه خاموش‌اند. */
 (function () {
+  window.fx = { enter() {} };
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if (reduced || !window.gsap || !window.ScrollTrigger) { window.fx = { enter() {} }; return; }
+  const saveData = !!(navigator.connection && (navigator.connection.saveData || /(^|-)2g$/.test(navigator.connection.effectiveType || '')));
+  if (reduced || saveData) { window.fxReady = Promise.resolve(); return; } // کاربر حرکت نمی‌خواهد یا اینترنت ضعیف است: حتی کتابخانه‌ها دانلود نمی‌شوند
+  const load = (src) => new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = rej; document.head.appendChild(s); });
+  window.fxReady = load('vendor/gsap.min.js').then(() => Promise.all([load('vendor/ScrollTrigger.min.js'), load('vendor/lenis.min.js').catch(() => {})])).then(init).catch(() => {});
+  function init() {
   const { gsap, ScrollTrigger } = window;
   gsap.registerPlugin(ScrollTrigger);
   const $ = (s, r = document) => r.querySelector(s);
@@ -134,4 +139,5 @@
   }
 
   window.fx = { enter };
+  }
 })();

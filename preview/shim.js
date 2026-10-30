@@ -15,7 +15,7 @@
     const P = (id, cat, name, price, old, stock, img, d) => ({ id, category_id: cat, name, description: d, price, old_price: old, stock, images: [img], active: 1, created_at: t - id * 3600, updated_at: t });
     return {
       seq: { user: 3, product: 9, category: 4, order: 1 },
-      settings: { shop_name: 'کیان اکسسور', tagline: 'کمربند، کیف و اکسسوری', owner_phone: '+989039665868', admin_telegram: '@TheROMZ52', telegram_link: 'https://t.me/Kianacs?direct', instagram: '2026.kian_accessory', shipping_cost: '50000', free_shipping_over: '2000000', payment_info: 'پس از ثبت سفارش و تأیید موجودی، نحوه پرداخت از طریق پیام‌رسان یا تماس به شما اعلام می‌شود.', announcement: 'نسخه نمایشی — محصولات و سفارش‌ها نمونه‌اند' },
+      settings: { shop_name: 'کیان اکسسور', tagline: 'کمربند، کیف و اکسسوری', owner_phone: '+989039665868', admin_telegram: '@TheROMZ52', telegram_link: 'https://t.me/Kianacs?direct', instagram: '2026.kian_accessory', shipping_cost: '50000', free_shipping_over: '2000000', payment_info: 'پس از ثبت سفارش و تأیید موجودی، نحوه پرداخت از طریق پیام‌رسان یا تماس به شما اعلام می‌شود.', announcement: 'نسخه نمایشی — محصولات و سفارش‌ها نمونه‌اند', business_city: '', business_address: '' },
       users: [
         { id: 1, name: 'مالک نمایشی', phone: '09039665868', email: null, password: 'demo1234', role: 'owner', province: '', city: '', address: '', postal_code: '', blocked: 0, created_at: t - 99999 },
         { id: 2, name: 'مشتری نمایشی', phone: '09121234567', email: null, password: 'demo1234', role: 'customer', province: 'تهران', city: 'تهران', address: 'خیابان ولیعصر، پلاک ۱۲', postal_code: '', blocked: 0, created_at: t - 88888 },

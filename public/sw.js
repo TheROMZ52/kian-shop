@@ -1,9 +1,9 @@
 'use strict';
 // سرویس‌ورکر ساده: مرور فروشگاه (صفحه‌ها، محصولات، دسته‌ها) در قطعی/ضعف شبکه هم کار کند.
 // داده‌های خصوصی (حساب، سفارش‌ها، مدیریت) هرگز کش نمی‌شوند.
-const CACHE = 'kian-v1';
+const CACHE = 'kian-v2';
 const PUBLIC_API = ['/api/products', '/api/categories', '/api/config'];
-self.addEventListener('install', (e) => { e.waitUntil(caches.open(CACHE).then((c) => c.addAll(['/', '/style.css?v=1', '/app.js?v=1', '/img/logo.jpg', '/fonts/vazirmatn.woff2']).catch(() => {})).then(() => self.skipWaiting())); });
+self.addEventListener('install', (e) => { e.waitUntil(caches.open(CACHE).then((c) => c.addAll(['/', '/style.css?v=2', '/app.js?v=2', '/fx.js?v=2', '/img/logo.jpg', '/fonts/vazirmatn.woff2']).catch(() => {})).then(() => self.skipWaiting())); });
 self.addEventListener('activate', (e) => { e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim())); });
 self.addEventListener('fetch', (e) => {
   const r = e.request, u = new URL(r.url);

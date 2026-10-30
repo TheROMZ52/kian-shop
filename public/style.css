@@ -224,3 +224,9 @@ footer.foot a{color:var(--silver)}
 .st{transition:transform .2s}
 tr.link td{transition:background .2s}
 .toast{animation:tin .35s cubic-bezier(.2,.9,.3,1.3)}
+
+.sr{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.crumbs{margin-bottom:14px;font-size:.85rem;color:var(--muted)}
+.crumbs ol{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:4px}
+.crumbs li+li::before{content:"‹";margin-inline:8px;color:var(--line2)}
+.crumbs a:hover{color:var(--text)}.crumbs [aria-current]{color:var(--silver)}

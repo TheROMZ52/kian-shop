@@ -53,6 +53,8 @@ const DEFAULT_SETTINGS = {
   free_shipping_over: '2000000',
   payment_info: 'پس از ثبت سفارش و تأیید موجودی، نحوه پرداخت (کارت‌به‌کارت یا روش هماهنگ‌شده) از طریق پیام‌رسان یا تماس به شما اعلام می‌شود.',
   announcement: '',
+  business_city: '',
+  business_address: '',
 };
 
 let cur;

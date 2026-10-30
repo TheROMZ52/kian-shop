@@ -42,19 +42,32 @@ function toast(msg, bad) {
   $('#toasts').appendChild(t);
   setTimeout(() => t.remove(), 3200);
 }
-const go = (h) => { location.hash = h; };
+const HASH_MODE = !!window.__PREVIEW__; // نسخه Preview روی GitHub Pages (بدون سرور) با هش کار می‌کند
+function curRoute() {
+  if (HASH_MODE) return (location.hash.slice(1) || '/').split('?');
+  if (location.hash.startsWith('#/')) history.replaceState(null, '', location.hash.slice(1)); // لینک‌های قدیمی
+  return [location.pathname.replace(/\/+$/, '') || '/', location.search.slice(1)];
+}
+const curPath = () => curRoute()[0];
+const go = (h) => {
+  if (HASH_MODE) { location.hash = h; return; }
+  const u = h.startsWith('#') ? h.slice(1) : h;
+  if (u !== location.pathname + location.search) history.pushState(null, '', u);
+  render();
+};
+const fixLinks = (html) => (HASH_MODE ? html : html.replace(/href="#\//g, 'href="/'));
 const isStaff = () => S.user && ['admin', 'owner'].includes(S.user.role);
 const img0 = (p) => (p.images && p.images[0] ? `uploads/${p.images[0]}` : null);
 
 /* ---------- قاب اصلی ---------- */
-function shell(inner, active) {
+function shell0(inner, active) {
   const c = S.cfg || {};
   const n = cartCount();
   const nav = [['#/', 'خانه', 'home'], ['#/products', 'محصولات', 'grid'], ['#/cart', 'سبد خرید', 'bag'], [S.user ? '#/account' : '#/login', S.user ? 'حساب من' : 'ورود', 'user']];
   return `
   ${c.announcement ? `<div class="announce">${esc(c.announcement)}</div>` : ''}
   <header class="top"><div class="wrap">
-    <a class="brand" href="#/"><img src="img/logo.jpg" alt=""><span class="metal">${esc(c.shop_name || 'کیان اکسسور')}</span></a>
+    <a class="brand" href="#/"><img src="img/logo.jpg" alt="" width="40" height="40"><span class="metal">${esc(c.shop_name || 'کیان اکسسور')}</span></a>
     <nav class="topnav">${nav.slice(0, 2).map((x) => `<a href="${x[0]}" class="${active === x[2] ? 'on' : ''}">${x[1]}</a>`).join('')}<a href="#/track" class="${active === 'track' ? 'on' : ''}">پیگیری سفارش</a><a href="#/contact" class="${active === 'contact' ? 'on' : ''}">تماس با ما</a></nav>
     <form class="searchbox" data-form="search"><input type="search" name="q" placeholder="جست‌وجوی محصول…" aria-label="جست‌وجو"></form>
     <span class="grow"></span>
@@ -65,7 +78,7 @@ function shell(inner, active) {
   <main>${inner}</main>
   <footer class="foot"><div class="wrap">
     <div><b class="metal">${esc(c.shop_name || '')}</b><div>${esc(c.tagline || '')}</div><div class="small">پشتیبانی و ثبت سفارش از طریق پیام‌رسان یا تماس مستقیم.</div></div>
-    <div>${contactLinks(c)}</div>
+    <div>${contactLinks(c)}<div style="margin-top:8px"><a href="#/products">محصولات</a> · <a href="#/track">پیگیری سفارش</a> · <a href="#/contact">تماس با ما</a></div></div>
   </div></footer>
   <nav class="tabbar">${nav.map((x) => `<a href="${x[0]}" class="${active === x[2] ? 'on' : ''}">${svg(x[2])}<span>${x[1]}</span>${x[2] === 'bag' && n ? `<span class="badge">${fa(n)}</span>` : ''}</a>`).join('')}</nav>`;
 }
@@ -73,12 +86,32 @@ function contactLinks(c) {
   const tel = (c.owner_phone || '').replace(/\s/g, '');
   const ig = (c.instagram || '').replace(/^@/, '');
   return [
+    c.business_address ? `<div>📍 ${esc([c.business_city, c.business_address].filter(Boolean).join('، '))}</div>` : '',
     tel ? `<div>📞 مالک: <a class="ltr" href="tel:${esc(tel)}" dir="ltr">${esc(tel)}</a></div>` : '',
     c.admin_telegram ? `<div>👨‍💼 ادمین: <a href="https://t.me/${esc(c.admin_telegram.replace('@', ''))}" target="_blank" rel="noopener">${esc(c.admin_telegram)}</a></div>` : '',
     c.telegram_link ? `<div>💬 <a href="${esc(c.telegram_link)}" target="_blank" rel="noopener">دایرکت و ثبت سفارش در تلگرام</a></div>` : '',
     ig ? `<div>📷 اینستاگرام: <a href="https://instagram.com/${esc(ig)}" target="_blank" rel="noopener" dir="ltr">@${esc(ig)}</a></div>` : '',
   ].join('');
 }
+const shell = (i, a) => fixLinks(shell0(i, a));
+const crumbs = (items) => `<nav class="crumbs" aria-label="مسیر صفحه"><ol>${items.map(([l, h]) => `<li>${h ? `<a href="${h}">${esc(l)}</a>` : `<span aria-current="page">${esc(l)}</span>`}</li>`).join('')}</ol></nav>`;
+let PM = null; // متای اختصاصی صفحه فعلی (عنوان، توضیح)
+const PRIVATE = /^\/(cart|checkout|account|login|register|order|done|track|admin)(\/|$)/;
+function defaultMeta(path) {
+  const n = S.cfg.shop_name || 'کیان اکسسور';
+  const T = { '/': [`${n} | ${S.cfg.tagline}`, `${n}؛ ${S.cfg.tagline}. خرید آنلاین، ثبت سفارش چندمحصولی و پیگیری با کد رهگیری.`], '/products': ['محصولات', `همه محصولات ${n}: کمربند، کیف و اکسسوری.`], '/cart': ['سبد خرید'], '/checkout': ['ثبت سفارش'], '/track': ['پیگیری سفارش', 'پیگیری وضعیت سفارش با کد رهگیری و شماره موبایل.'], '/contact': ['تماس با ما و ثبت سفارش', `راه‌های ارتباط با ${n}: تلفن مالک، تلگرام و اینستاگرام.`], '/login': ['ورود'], '/register': ['ثبت‌نام'], '/account': ['حساب من'] };
+  let t = T[path];
+  if (!t) t = path.startsWith('/order/') ? ['سفارش ' + path.split('/')[2]] : path.startsWith('/done/') ? ['سفارش شما ثبت شد'] : path.startsWith('/admin') ? ['مدیریت فروشگاه'] : ['صفحه پیدا نشد'];
+  return { title: t[0] === T['/'][0] ? t[0] : `${t[0]} | ${n}`, desc: t[1] || '' };
+}
+function setMeta(path, m, noindex) {
+  document.title = m.title;
+  const up = (sel, tag, attrs) => { let el = $(sel); if (!el) { el = document.createElement(tag); document.head.appendChild(el); } for (const k in attrs) el.setAttribute(k, attrs[k]); };
+  up('meta[name="description"]', 'meta', { name: 'description', content: m.desc || '' });
+  up('meta[name="robots"]', 'meta', { name: 'robots', content: noindex ? 'noindex,nofollow' : 'index,follow' });
+  if (!HASH_MODE) up('link[rel="canonical"]', 'link', { rel: 'canonical', href: location.origin + (m.canonical || path) });
+}
+const notFound = () => `<div class="wrap page"><div class="empty"><h1 class="metal" style="font-size:3rem;margin:0">۴۰۴</h1><b>صفحه‌ای که دنبالش بودید پیدا نشد</b>ممکن است آدرس اشتباه باشد یا محصول حذف شده باشد.<div class="row" style="margin-top:18px;justify-content:center;max-width:360px;margin-inline:auto"><a class="btn primary" href="#/">صفحه اصلی</a><a class="btn" href="#/products">محصولات</a></div></div></div>`;
 const loading = () => '<div class="wrap page"><div class="spin"></div></div>';
 const fail = (e) => `<div class="wrap page"><div class="empty"><b>مشکلی پیش آمد</b>${esc(e.message || e)}<div style="margin-top:14px"><a class="btn" href="#/">بازگشت به خانه</a></div></div></div>`;
 
@@ -100,7 +133,7 @@ route(/^\/?$/, async () => {
   <section class="hero"><div class="wrap">
     <div><h1 class="metal">${esc(c.shop_name)}</h1><p>${esc(c.tagline)}. سفارش بدهید، با کد رهگیری وضعیتش را ببینید و مستقیم با ما در ارتباط باشید.</p>
       <div class="row" style="max-width:340px"><a class="btn primary" href="#/products">مشاهده محصولات</a><a class="btn" href="#/track">پیگیری سفارش</a></div></div>
-    <div class="logo3d"><i class="ring"></i><img class="logo" src="img/logo.jpg" alt="${esc(c.shop_name)}"></div>
+    <div class="logo3d"><i class="ring"></i><img class="logo" src="img/logo.jpg" alt="لوگوی ${esc(c.shop_name)}" width="300" height="300"></div>
   </div></section>
   <div class="marq" aria-hidden="true"><div class="tr">${'<span>BELTS</span><span>✦</span><span>BAGS</span><span>✦</span><span>ACCESSORIES</span><span>✦</span>'.repeat(8)}</div></div>
   <div class="wrap page">
@@ -116,8 +149,10 @@ route(/^\/products$/, async (m, qs) => {
   const [data, cats] = await Promise.all([api(`/products?q=${encodeURIComponent(q)}&category=${cat}&sort=${sort}&page=${page}&limit=24`), api('/categories')]);
   const link = (o) => { const p = new URLSearchParams({ q, category: cat, sort, page, ...o }); for (const [k, v] of [...p]) if (!v || (k === 'page' && v === '1') || (k === 'sort' && v === 'new')) p.delete(k); return '#/products' + (p.toString() ? '?' + p : ''); };
   const pages = Math.ceil(data.total / data.limit);
-  return ['grid', `<div class="wrap page">
-    <div class="pagehead"><h1>محصولات</h1>
+  const cn = (cats.find((x) => String(x.id) === cat) || {}).name;
+  PM = { title: `${cn ? cn + ' — ' : ''}${q ? 'جست‌وجوی «' + q + '»' : 'محصولات'} | ${S.cfg.shop_name}`, desc: cn ? `خرید ${cn} از ${S.cfg.shop_name}؛ مشاهده قیمت و موجودی.` : `همه محصولات ${S.cfg.shop_name}: کمربند، کیف و اکسسوری.`, canonical: '/products' + (cat ? '?category=' + cat : '') };
+  return ['grid', `<div class="wrap page">${crumbs([['خانه', '#/'], ['محصولات', cn ? '#/products' : null], ...(cn ? [[cn, null]] : [])])}
+    <div class="pagehead"><h1>${esc(cn || 'محصولات')}</h1>
       <select data-act="sort" aria-label="مرتب‌سازی" style="width:auto"><option value="new" ${sort === 'new' ? 'selected' : ''}>جدیدترین</option><option value="cheap" ${sort === 'cheap' ? 'selected' : ''}>ارزان‌ترین</option><option value="exp" ${sort === 'exp' ? 'selected' : ''}>گران‌ترین</option></select></div>
     <form data-form="search" class="field"><input type="search" name="q" value="${esc(q)}" placeholder="جست‌وجوی نام یا توضیحات محصول…"></form>
     <div class="chips" style="margin-bottom:16px"><a class="chip ${cat ? '' : 'on'}" href="${link({ category: '', page: 1 })}">همه</a>${cats.map((x) => `<a class="chip ${String(x.id) === cat ? 'on' : ''}" href="${link({ category: x.id, page: 1 })}">${esc(x.name)}<small>${fa(x.count)}</small></a>`).join('')}</div>
@@ -128,13 +163,15 @@ route(/^\/products$/, async (m, qs) => {
 
 route(/^\/p\/(\d+)$/, async (m) => {
   const p = await api('/products/' + m[1]);
+  const rel = p.category_id ? (await api(`/products?category=${p.category_id}&limit=5`)).items.filter((x) => x.id !== p.id).slice(0, 4) : [];
+  PM = { title: `${p.name} | ${S.cfg.shop_name}`, desc: (p.description || `خرید ${p.name} از ${S.cfg.shop_name}`).replace(/\s+/g, ' ').slice(0, 155), canonical: '/p/' + p.id };
   const inCart = (S.cart.find((i) => i.id === p.id) || {}).qty || 0;
   const imgs = p.images.map((i) => `uploads/${i}`);
   S.pdQty = 1;
-  return ['grid', `<div class="wrap page"><div class="two rev">
+  return ['grid', `<div class="wrap page">${crumbs([['خانه', '#/'], ['محصولات', '#/products'], ...(p.category ? [[p.category, '#/products?category=' + p.category_id]] : []), [p.name, null]])}<div class="two rev">
     <div class="gallery">
       <div class="main">${imgs[0] ? `<img id="pmain" src="${imgs[0]}" alt="${esc(p.name)}">` : `<div class="pimg"><div class="ph">${svg('img')}</div></div>`}</div>
-      ${imgs.length > 1 ? `<div class="thumbs">${imgs.map((s, i) => `<img src="${s}" data-act="thumb" class="${i ? '' : 'on'}" alt="">`).join('')}</div>` : ''}
+      ${imgs.length > 1 ? `<div class="thumbs">${imgs.map((s, i) => `<img src="${s}" data-act="thumb" class="${i ? '' : 'on'}" alt="${esc(p.name)} - تصویر ${i + 1}">`).join('')}</div>` : ''}
     </div>
     <div class="stack">
       <div class="muted small"><a href="#/products${p.category_id ? '?category=' + p.category_id : ''}">${esc(p.category || 'محصولات')}</a></div>
@@ -144,7 +181,7 @@ route(/^\/p\/(\d+)$/, async (m) => {
       ${p.stock > 0 ? `<div class="row" style="align-items:center"><div class="qty" style="flex:0 0 auto"><button data-act="pq" data-d="-1" aria-label="کم">−</button><span id="pq">۱</span><button data-act="pq" data-d="1" data-max="${p.stock}" aria-label="زیاد">+</button></div>
         <button class="btn primary" data-act="add" data-id="${p.id}" data-max="${p.stock}">افزودن به سبد خرید</button></div>${inCart ? `<div class="small muted">${fa(inCart)} عدد از این محصول در سبد شماست.</div>` : ''}` : ''}
       ${p.description ? `<div class="card"><h3>توضیحات</h3><div class="desc">${esc(p.description)}</div></div>` : ''}
-    </div></div></div>`];
+    </div></div>${rel.length ? `<h2 style="margin-top:34px">محصولات مشابه</h2><div class="grid">${rel.map(pcard).join('')}</div>` : ''}</div>`];
 }, 'grid');
 
 /* سبد خرید */
@@ -215,7 +252,7 @@ function timeline(events) {
 const stBadge = (s) => `<span class="st ${s}">${esc(S.cfg.statuses[s] || s)}</span>`;
 
 route(/^\/order\/([A-Z0-9-]+)$/, async (m) => {
-  if (!S.user) { sessionStorage.setItem('next', location.hash); return go('#/login'), ['bag', loading()]; }
+  if (!S.user) { sessionStorage.setItem('next', '#' + curPath()); return go('#/login'), ['bag', loading()]; }
   const o = await api('/orders/' + m[1]);
   return ['user', `<div class="wrap page" style="max-width:760px"><div class="pagehead"><h1 dir="ltr">${esc(o.code)}</h1>${stBadge(o.status)}</div>
     <div class="card stack"><div class="muted small">ثبت: ${dateFa(o.created_at)}</div>
@@ -239,7 +276,7 @@ route(/^\/login$/, async () => {
   if (S.user) return go('#/account'), ['user', loading()];
   const gid = S.cfg.googleClientId;
   setTimeout(() => { if (gid) loadGoogle(gid); }, 0);
-  return ['user', `<div class="wrap page" style="max-width:460px"><div class="card stack">
+  return ['user', `<div class="wrap page" style="max-width:460px"><div class="card stack"><h1 class="sr">ورود به حساب کاربری</h1>
     <div class="tabs" style="margin:0"><a href="#/login" class="on">ورود</a><a href="#/register">ثبت‌نام</a></div>
     <form data-form="login"><label class="field"><span>شماره موبایل یا ایمیل</span><input type="text" name="id" class="ltr" required autocomplete="username"></label>
     <label class="field"><span>رمز عبور</span><input type="password" name="password" class="ltr" required autocomplete="current-password"></label>
@@ -252,7 +289,7 @@ route(/^\/register$/, async () => {
   if (S.user) return go('#/account'), ['user', loading()];
   const gid = S.cfg.googleClientId;
   setTimeout(() => { if (gid) loadGoogle(gid); }, 0);
-  return ['user', `<div class="wrap page" style="max-width:460px"><div class="card stack">
+  return ['user', `<div class="wrap page" style="max-width:460px"><div class="card stack"><h1 class="sr">ساخت حساب کاربری</h1>
     <div class="tabs" style="margin:0"><a href="#/login">ورود</a><a href="#/register" class="on">ثبت‌نام</a></div>
     <form data-form="register"><label class="field"><span>نام و نام خانوادگی</span><input type="text" name="name" required autocomplete="name"></label>
     <label class="field"><span>شماره موبایل</span><input type="tel" name="phone" class="ltr" required autocomplete="tel" placeholder="09123456789"></label>
@@ -297,6 +334,11 @@ route(/^\/account$/, async () => {
 
 /* ---------- رویدادها ---------- */
 document.addEventListener('click', async (e) => {
+  const a = e.target.closest('a[href]');
+  if (a && !HASH_MODE && e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey && !a.target && !a.hasAttribute('download')) {
+    const h = a.getAttribute('href');
+    if (h.startsWith('/') && !h.startsWith('//') && !/^\/(api|uploads|img|fonts|vendor)\//.test(h)) { e.preventDefault(); return go(h); }
+  }
   const row = e.target.closest('[data-href]');
   if (row && !e.target.closest('a,button,input,select')) return go(row.dataset.href);
   const t = e.target.closest('[data-act]');
@@ -322,7 +364,7 @@ document.addEventListener('click', async (e) => {
 });
 document.addEventListener('change', (e) => {
   const t = e.target.closest('[data-act="sort"]');
-  if (t) { const p = new URLSearchParams(location.hash.split('?')[1] || ''); p.set('sort', t.value); p.delete('page'); go('#/products?' + p); }
+  if (t) { const p = new URLSearchParams(curRoute()[1]); p.set('sort', t.value); p.delete('page'); go('#/products?' + p); }
 });
 
 document.addEventListener('submit', async (e) => {
@@ -356,11 +398,11 @@ document.addEventListener('submit', async (e) => {
 let renderSeq = 0;
 async function render(keepScroll) {
   const seq = ++renderSeq;
-  const [path, query] = (location.hash.slice(1) || '/').split('?');
+  const [path, query] = curRoute();
   const qs = new URLSearchParams(query || '');
   if (path.startsWith('/admin')) {
     if (!isStaff()) { $('#app').innerHTML = shell('<div class="wrap page"><div class="empty"><b>دسترسی ندارید</b><a class="btn" href="#/login">ورود مدیر</a></div></div>', ''); return; }
-    if (!window.renderAdmin) { await new Promise((r) => { const s = document.createElement('script'); s.src = 'admin.js?v=1'; s.onload = r; s.onerror = r; document.head.appendChild(s); }); }
+    if (!window.renderAdmin) { await new Promise((r) => { const s = document.createElement('script'); s.src = 'admin.js?v=2'; s.onload = r; s.onerror = r; document.head.appendChild(s); }); }
     if (seq !== renderSeq) return;
     try { const [tab, html] = await window.renderAdmin(path, qs); if (seq === renderSeq) { $('#app').innerHTML = shell(html, tab); window.adminAfter && window.adminAfter(path); window.fx && fx.enter(keepScroll); } } catch (e) { $('#app').innerHTML = shell(fail(e), ''); }
     return;
@@ -370,17 +412,18 @@ async function render(keepScroll) {
   const y = window.scrollY;
   if (!keepScroll) $('#app').innerHTML = shell(loading(), '');
   try {
-    if (!hit) throw new Error('صفحه پیدا نشد');
+    if (!hit) throw Object.assign(new Error('صفحه پیدا نشد'), { status: 404 });
     const out = await hit[1](hit[0], qs);
     if (seq !== renderSeq) return;
     const [tab, html] = out;
     $('#app').innerHTML = shell(html, tab);
-    document.title = (S.cfg.shop_name || 'کیان اکسسور') + (tab === 'home' ? ' | ' + S.cfg.tagline : '');
+    setMeta(path, { ...defaultMeta(path), ...(PM || {}) }, PRIVATE.test(path)); PM = null;
     window.scrollTo(0, keepScroll ? y : 0);
     window.fx && fx.enter(keepScroll);
-  } catch (e) { if (seq === renderSeq) $('#app').innerHTML = shell(fail(e), ''); }
+  } catch (e) { PM = null; if (seq === renderSeq) { const nf = e.status === 404; $('#app').innerHTML = shell(nf ? notFound() : fail(e), ''); setMeta(path, nf ? { title: 'صفحه پیدا نشد | ' + S.cfg.shop_name, desc: '' } : defaultMeta(path), true); } }
 }
-window.addEventListener('hashchange', () => render());
+window.addEventListener('hashchange', () => { if (HASH_MODE || location.hash.startsWith('#/')) render(); });
+window.addEventListener('popstate', () => { if (!HASH_MODE) render(); });
 
 (async function init() {
   try {
@@ -390,7 +433,8 @@ window.addEventListener('hashchange', () => render());
     $('#app').innerHTML = `<div class="wrap page"><div class="empty"><b>اتصال به سرور برقرار نیست</b>${esc(e.message)}<div style="margin-top:14px"><a class="btn" href="/">تلاش دوباره</a></div></div></div>`;
     return;
   }
+  await Promise.race([window.fxReady || 0, new Promise((r) => setTimeout(r, 1200))]);
   render();
   if ('serviceWorker' in navigator && !window.__PREVIEW__) navigator.serviceWorker.register('sw.js').catch(() => {});
 })();
-Object.assign(window, { S, api, esc, fa, toman, dateFa, toast, go, render, svg, stBadge, toEn, $, $$ });
+Object.assign(window, { curPath, S, api, esc, fa, toman, dateFa, toast, go, render, svg, stBadge, toEn, $, $$ });
