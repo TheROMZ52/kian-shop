@@ -11,7 +11,7 @@ fs.copyFileSync(path.join(__dirname, 'shim.js'), path.join(dist, 'preview-shim.j
 fs.writeFileSync(path.join(dist, '.nojekyll'), '');
 
 const idx = path.join(dist, 'index.html');
-let html = fs.readFileSync(idx, 'utf8');
+let html = fs.readFileSync(path.join(root, 'views', 'index.html'), 'utf8');
 if (!html.includes('<script defer src="fx.js')) throw new Error('index.html: تگ fx.js پیدا نشد');
 html = html.replace('<script defer src="fx.js', '<script src="preview-shim.js"></script>\n<script defer src="fx.js');
 html = html.replace('content="index,follow"', 'content="noindex,nofollow"'); // نسخه نمایشی نباید ایندکس شود
