@@ -481,11 +481,27 @@ app.use((e, req, res, next) => { // eslint-disable-line no-unused-vars
   res.status(status).json({ error: status >= 500 ? 'خطای داخلی سرور' : e.message });
 });
 
-// ---------- مالک اولیه ----------
+// ---------- مالک اولیه و بازیابی امن رمز مالک ----------
 async function seedOwner() {
-  if (await D.get("SELECT 1 FROM users WHERE role='owner'")) return;
+  const configuredPass = String(process.env.OWNER_PASSWORD || '');
+  const owner = await D.get("SELECT id FROM users WHERE role='owner'");
+  if (owner) {
+    if (configuredPass.length >= 8) {
+      const applied = await D.get("SELECT value FROM settings WHERE key='owner_password_reset_hash'");
+      if (!applied || !bcrypt.compareSync(configuredPass, applied.value)) {
+        const passwordHash = bcrypt.hashSync(configuredPass, 10);
+        await D.batch([
+          { sql: 'UPDATE users SET password_hash=? WHERE id=?', params: [passwordHash, owner.id], min: 1 },
+          { sql: 'DELETE FROM sessions WHERE user_id=?', params: [owner.id] },
+          { sql: 'INSERT INTO settings(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value', params: ['owner_password_reset_hash', passwordHash] },
+        ]);
+        console.log('رمز مالک با تنظیم امن محیطی به‌روزرسانی شد و نشست‌های قبلی بسته شدند.');
+      }
+    }
+    return;
+  }
   const phone = normPhone(process.env.OWNER_PHONE || '09039665868');
-  let pass = process.env.OWNER_PASSWORD, generated = false;
+  let pass = configuredPass, generated = false;
   if (!pass || pass.length < 8) { pass = crypto.randomBytes(9).toString('base64url'); generated = true; }
   const ex = await D.get('SELECT id FROM users WHERE phone=?', phone);
   if (ex) await D.run("UPDATE users SET role='owner',password_hash=? WHERE id=?", bcrypt.hashSync(pass, 10), ex.id);
