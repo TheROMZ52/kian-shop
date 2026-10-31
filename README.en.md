@@ -72,3 +72,11 @@ This value is used for canonical URLs and the sitemap. Then submit `https://your
 - Keep `.env` private and never commit production credentials.
 - Owner-only actions protect user administration, backups, and restore operations.
 - Order totals are calculated on the server, not trusted from the browser.
+
+## Deploying on Vercel + Supabase
+
+The app has two database drivers and the same code runs on both: **SQLite** (default, for Pafarland/local) and **Supabase Postgres** (used automatically when `DB_GATEWAY_URL` is set). Vercel's filesystem is read-only and ephemeral, so SQLite cannot be used there.
+
+The Vercel function talks to a small Supabase Edge Function (`kian-db`) with a secret key. The function runs parameterised SQL in one atomic transaction under a restricted role (`kian_app`, access to the `kian` schema only), so the database password never reaches Vercel and other tables in the same Supabase project stay untouched. Product images live in Supabase Storage (bucket `kian-products`).
+
+Environment variables: `DB_GATEWAY_URL`, `DB_GATEWAY_KEY` (secret), `STORAGE_PUBLIC_URL`, `OWNER_PHONE`, `OWNER_PASSWORD` (secret). Files: `vercel.json`, `api/index.js`, `db/postgres.sql`. Run `npm run test:pg` to test against a real Postgres (PGlite) without Supabase. In Supabase mode, backups are done from the Supabase dashboard.
