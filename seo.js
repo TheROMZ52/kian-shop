@@ -63,7 +63,7 @@ async function resolve(req) {
     const cat = cid && cats.find((c) => c.id === cid);
     const filtered = req.query.q || req.query.sort || req.query.page;
     r.title = `${cat ? cat.name + ' — ' : ''}${req.query.q ? 'جست‌وجوی «' + trunc(req.query.q, 40) + '»' : 'محصولات'} | ${name}`;
-    r.desc = cat ? `خرید ${cat.name} از ${name}؛ مشاهده قیمت و موجودی.` : `همه محصولات ${name}: کمربند، کیف و اکسسوری.`;
+    r.desc = cat ? `خرید ${cat.name} از ${name}؛ مشاهده قیمت و موجودی.` : `همه محصولات ${name}: کمربند، استیکر و اکسسوری.`;
     r.canonical = B + '/products' + (cat ? `?category=${cat.id}` : '');
     if (filtered) r.robots = 'noindex,follow';
     const rows = cat ? await D.all('SELECT id,name,price,stock FROM products WHERE active=1 AND category_id=? ORDER BY id DESC LIMIT 60', cat.id) : await D.all('SELECT id,name,price,stock FROM products WHERE active=1 ORDER BY id DESC LIMIT 60');

@@ -99,7 +99,7 @@ let PM = null; // متای اختصاصی صفحه فعلی (عنوان، توض
 const PRIVATE = /^\/(cart|checkout|account|login|register|order|done|track|admin)(\/|$)/;
 function defaultMeta(path) {
   const n = S.cfg.shop_name || 'کیان اکسسور';
-  const T = { '/': [`${n} | ${S.cfg.tagline}`, `${n}؛ ${S.cfg.tagline}. خرید آنلاین، ثبت سفارش چندمحصولی و پیگیری با کد رهگیری.`], '/products': ['محصولات', `همه محصولات ${n}: کمربند، کیف و اکسسوری.`], '/cart': ['سبد خرید'], '/checkout': ['ثبت سفارش'], '/track': ['پیگیری سفارش', 'پیگیری وضعیت سفارش با کد رهگیری و شماره موبایل.'], '/contact': ['تماس با ما و ثبت سفارش', `راه‌های ارتباط با ${n}: تلفن مالک، تلگرام و اینستاگرام.`], '/login': ['ورود'], '/register': ['ثبت‌نام'], '/account': ['حساب من'] };
+  const T = { '/': [`${n} | ${S.cfg.tagline}`, `${n}؛ ${S.cfg.tagline}. خرید آنلاین، ثبت سفارش چندمحصولی و پیگیری با کد رهگیری.`], '/products': ['محصولات', `همه محصولات ${n}: کمربند، استیکر و اکسسوری.`], '/cart': ['سبد خرید'], '/checkout': ['ثبت سفارش'], '/track': ['پیگیری سفارش', 'پیگیری وضعیت سفارش با کد رهگیری و شماره موبایل.'], '/contact': ['تماس با ما و ثبت سفارش', `راه‌های ارتباط با ${n}: تلفن مالک، تلگرام و اینستاگرام.`], '/login': ['ورود'], '/register': ['ثبت‌نام'], '/account': ['حساب من'] };
   let t = T[path];
   if (!t) t = path.startsWith('/order/') ? ['سفارش ' + path.split('/')[2]] : path.startsWith('/done/') ? ['سفارش شما ثبت شد'] : path.startsWith('/admin') ? ['مدیریت فروشگاه'] : ['صفحه پیدا نشد'];
   return { title: t[0] === T['/'][0] ? t[0] : `${t[0]} | ${n}`, desc: t[1] || '' };
@@ -135,7 +135,7 @@ route(/^\/?$/, async () => {
       <div class="row" style="max-width:340px"><a class="btn primary" href="#/products">مشاهده محصولات</a><a class="btn" href="#/track">پیگیری سفارش</a></div></div>
     <div class="logo3d"><i class="ring"></i><img class="logo" src="img/logo.jpg" alt="لوگوی ${esc(c.shop_name)}" width="300" height="300"></div>
   </div></section>
-  <div class="marq" aria-hidden="true"><div class="tr">${'<span>BELTS</span><span>✦</span><span>BAGS</span><span>✦</span><span>ACCESSORIES</span><span>✦</span>'.repeat(8)}</div></div>
+  <div class="marq" aria-hidden="true"><div class="tr">${'<span>BELTS</span><span>✦</span><span>STICKERS</span><span>✦</span><span>ACCESSORIES</span><span>✦</span>'.repeat(8)}</div></div>
   <div class="wrap page">
     <div class="chips">${cats.map((x) => `<a class="chip" href="#/products?category=${x.id}">${esc(x.name)}<small>${fa(x.count)}</small></a>`).join('')}</div>
     <div class="perks"><div><b>ثبت سفارش چندمحصولی</b><span>همه‌چیز را در یک سبد بخرید</span></div><div><b>پیگیری با کد رهگیری</b><span>هر مرحله از سفارش قابل مشاهده است</span></div><div><b>ارتباط مستقیم با مالک</b><span>تلفن و تلگرام در دسترس است</span></div></div>
@@ -150,7 +150,7 @@ route(/^\/products$/, async (m, qs) => {
   const link = (o) => { const p = new URLSearchParams({ q, category: cat, sort, page, ...o }); for (const [k, v] of [...p]) if (!v || (k === 'page' && v === '1') || (k === 'sort' && v === 'new')) p.delete(k); return '#/products' + (p.toString() ? '?' + p : ''); };
   const pages = Math.ceil(data.total / data.limit);
   const cn = (cats.find((x) => String(x.id) === cat) || {}).name;
-  PM = { title: `${cn ? cn + ' — ' : ''}${q ? 'جست‌وجوی «' + q + '»' : 'محصولات'} | ${S.cfg.shop_name}`, desc: cn ? `خرید ${cn} از ${S.cfg.shop_name}؛ مشاهده قیمت و موجودی.` : `همه محصولات ${S.cfg.shop_name}: کمربند، کیف و اکسسوری.`, canonical: '/products' + (cat ? '?category=' + cat : '') };
+  PM = { title: `${cn ? cn + ' — ' : ''}${q ? 'جست‌وجوی «' + q + '»' : 'محصولات'} | ${S.cfg.shop_name}`, desc: cn ? `خرید ${cn} از ${S.cfg.shop_name}؛ مشاهده قیمت و موجودی.` : `همه محصولات ${S.cfg.shop_name}: کمربند، استیکر و اکسسوری.`, canonical: '/products' + (cat ? '?category=' + cat : '') };
   return ['grid', `<div class="wrap page">${crumbs([['خانه', '#/'], ['محصولات', cn ? '#/products' : null], ...(cn ? [[cn, null]] : [])])}
     <div class="pagehead"><h1>${esc(cn || 'محصولات')}</h1>
       <select data-act="sort" aria-label="مرتب‌سازی" style="width:auto"><option value="new" ${sort === 'new' ? 'selected' : ''}>جدیدترین</option><option value="cheap" ${sort === 'cheap' ? 'selected' : ''}>ارزان‌ترین</option><option value="exp" ${sort === 'exp' ? 'selected' : ''}>گران‌ترین</option></select></div>

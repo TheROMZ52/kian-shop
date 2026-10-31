@@ -13,7 +13,7 @@ const MODE = GATEWAY_URL ? 'gateway' : 'sqlite';
 
 const DEFAULT_SETTINGS = {
   shop_name: 'کیان اکسسور',
-  tagline: 'کمربند، کیف و اکسسوری',
+  tagline: 'کمربند، استیکر و اکسسوری',
   owner_phone: '+989039665868',
   admin_telegram: '@TheROMZ52',
   telegram_link: 'https://t.me/Kianacs?direct',
@@ -25,7 +25,7 @@ const DEFAULT_SETTINGS = {
   business_city: '',
   business_address: '',
 };
-const DEFAULT_CATEGORIES = ['کمربند', 'کیف', 'اکسسوری'];
+const DEFAULT_CATEGORIES = ['کمربند', 'استیکر', 'اکسسوری'];
 const ID_TABLES = new Set(['users', 'categories', 'products', 'orders', 'order_items', 'order_events']);
 
 /* ---------------- SQLite ---------------- */
@@ -122,6 +122,12 @@ const D = {
     const ops = Object.entries(DEFAULT_SETTINGS).filter(([k]) => !have.has(k)).map(([k, v]) => ({ sql: 'INSERT OR IGNORE INTO settings(key,value) VALUES(?,?)', params: [k, v] }));
     if (!Number(c.rows[0].n)) DEFAULT_CATEGORIES.forEach((n, i) => ops.push({ sql: 'INSERT OR IGNORE INTO categories(name,sort) VALUES(?,?)', params: [n, i] }));
     if (ops.length) await drv.batch(ops);
+    await drv.batch([
+      { sql: "UPDATE products SET category_id=(SELECT id FROM categories WHERE name='استیکر' LIMIT 1) WHERE category_id=(SELECT id FROM categories WHERE name='کیف' LIMIT 1) AND EXISTS (SELECT 1 FROM categories WHERE name='استیکر')" },
+      { sql: "DELETE FROM categories WHERE name='کیف' AND EXISTS (SELECT 1 FROM categories WHERE name='استیکر')" },
+      { sql: "UPDATE categories SET name='استیکر' WHERE name='کیف' AND NOT EXISTS (SELECT 1 FROM categories WHERE name='استیکر')" },
+      { sql: "UPDATE settings SET value='کمربند، استیکر و اکسسوری' WHERE key='tagline' AND value='کمربند، کیف و اکسسوری'" },
+    ]);
   },
 };
 module.exports = D;

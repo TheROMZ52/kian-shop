@@ -3,7 +3,7 @@
    فقط برای دیدن ظاهر و تجربه کاربری است؛ داده‌های فروشگاه واقعی نیست. */
 (function () {
   window.__PREVIEW__ = true;
-  const KEY = 'kian-preview-v1';
+  const KEY = 'kian-preview-v2';
   const LABELS = { pending: 'در انتظار بررسی', confirmed: 'تأیید شده', preparing: 'در حال آماده‌سازی', shipped: 'ارسال شد', delivered: 'تحویل داده شد', rejected: 'رد شده', cancelled: 'لغو شده' };
   const FLOW = { pending: ['confirmed', 'rejected', 'cancelled'], confirmed: ['preparing', 'shipped', 'rejected', 'cancelled'], preparing: ['shipped', 'cancelled'], shipped: ['delivered'], delivered: [], rejected: [], cancelled: [] };
   const now = () => Math.floor(Date.now() / 1000);
@@ -15,19 +15,19 @@
     const P = (id, cat, name, price, old, stock, img, d) => ({ id, category_id: cat, name, description: d, price, old_price: old, stock, images: [img], active: 1, created_at: t - id * 3600, updated_at: t });
     return {
       seq: { user: 3, product: 9, category: 4, order: 1 },
-      settings: { shop_name: 'کیان اکسسور', tagline: 'کمربند، کیف و اکسسوری', owner_phone: '+989039665868', admin_telegram: '@TheROMZ52', telegram_link: 'https://t.me/Kianacs?direct', instagram: '2026.kian_accessory', shipping_cost: '50000', free_shipping_over: '2000000', payment_info: 'پس از ثبت سفارش و تأیید موجودی، نحوه پرداخت از طریق پیام‌رسان یا تماس به شما اعلام می‌شود.', announcement: 'نسخه نمایشی — محصولات و سفارش‌ها نمونه‌اند', business_city: '', business_address: '' },
+      settings: { shop_name: 'کیان اکسسور', tagline: 'کمربند، استیکر و اکسسوری', owner_phone: '+989039665868', admin_telegram: '@TheROMZ52', telegram_link: 'https://t.me/Kianacs?direct', instagram: '2026.kian_accessory', shipping_cost: '50000', free_shipping_over: '2000000', payment_info: 'پس از ثبت سفارش و تأیید موجودی، نحوه پرداخت از طریق پیام‌رسان یا تماس به شما اعلام می‌شود.', announcement: 'نسخه نمایشی — محصولات و سفارش‌ها نمونه‌اند', business_city: '', business_address: '' },
       users: [
         { id: 1, name: 'مالک نمایشی', phone: '09039665868', email: null, password: 'demo1234', role: 'owner', province: '', city: '', address: '', postal_code: '', blocked: 0, created_at: t - 99999 },
         { id: 2, name: 'مشتری نمایشی', phone: '09121234567', email: null, password: 'demo1234', role: 'customer', province: 'تهران', city: 'تهران', address: 'خیابان ولیعصر، پلاک ۱۲', postal_code: '', blocked: 0, created_at: t - 88888 },
       ],
-      categories: [{ id: 1, name: 'کمربند', sort: 0 }, { id: 2, name: 'کیف', sort: 1 }, { id: 3, name: 'اکسسوری', sort: 2 }],
+      categories: [{ id: 1, name: 'کمربند', sort: 0 }, { id: 2, name: 'استیکر', sort: 1 }, { id: 3, name: 'اکسسوری', sort: 2 }],
       products: [
         P(1, 1, 'کمربند چرم طبیعی کلاسیک', 1250000, 1490000, 8, 'demo-belt-1.svg', 'چرم طبیعی با سگک نقره‌ای مات.\nمناسب استفاده روزانه و رسمی.'),
         P(2, 1, 'کمربند مشکی سگک قفلی', 980000, null, 5, 'demo-belt-2.svg', 'کمربند مشکی با سگک قفلی مقاوم.'),
         P(3, 1, 'کمربند دورو (مشکی/قهوه‌ای)', 1480000, null, 2, 'demo-belt-1.svg', 'دو رنگ در یک کمربند؛ سگک چرخشی.'),
-        P(4, 2, 'کیف دوشی چرمی', 3200000, 3600000, 4, 'demo-bag-1.svg', 'کیف دوشی با دو جیب داخلی و زیپ ضدسرقت.'),
-        P(5, 2, 'کیف دستی اداری', 4100000, null, 3, 'demo-bag-2.svg', 'جای لپ‌تاپ ۱۵ اینچ، چرم مصنوعی درجه یک.'),
-        P(6, 2, 'کیف پول مردانه', 690000, null, 12, 'demo-bag-1.svg', 'کیف پول جاکارتی با ۸ جا کارت.'),
+        P(4, 2, 'پک استیکر طرح مینیمال', 180000, 220000, 14, 'demo-sticker-1.svg', 'مجموعه استیکرهای مینیمال برای لپ‌تاپ، موبایل و دفتر.'),
+        P(5, 2, 'استیکر ضدآب فانتزی', 240000, null, 9, 'demo-sticker-2.svg', 'استیکرهای رنگی و ضدآب برای وسایل روزمره.'),
+        P(6, 2, 'استیکر لپ‌تاپ و موبایل', 120000, null, 20, 'demo-sticker-1.svg', 'چند طرح جذاب برای شخصی‌سازی لپ‌تاپ و قاب موبایل.'),
         P(7, 3, 'دستبند استیل نقره‌ای', 420000, 520000, 15, 'demo-ring-1.svg', 'استیل ضدزنگ، قفل مغناطیسی.'),
         P(8, 3, 'ست سگک و حلقه', 350000, null, 0, 'demo-ring-1.svg', 'این محصول نمونه ناموجود است.'),
       ],
@@ -123,7 +123,7 @@
         if (!String(f.name || '').trim()) throw E(400, 'نام محصول را وارد کنید'); if (!(price >= 0)) throw E(400, 'قیمت (تومان) را درست وارد کنید'); if (!(stock >= 0)) throw E(400, 'موجودی را درست وارد کنید');
         const ex = m ? DB.products.find((v) => v.id === Number(m[0])) : null; if (m && !ex) throw E(404, 'محصول پیدا نشد');
         let keep = ex ? ex.images : []; try { const k = JSON.parse(f.keep || '[]'); if (f.keep !== undefined) keep = keep.filter((x) => k.includes(x)); } catch (e) { /* ignore */ }
-        const catId = parseInt(f.category_id, 10) || null; const images = keep.length ? keep : [catId === 2 ? 'demo-bag-1.svg' : catId === 3 ? 'demo-ring-1.svg' : 'demo-belt-1.svg'];
+        const catId = parseInt(f.category_id, 10) || null; const images = keep.length ? keep : [catId === 2 ? 'demo-sticker-1.svg' : catId === 3 ? 'demo-ring-1.svg' : 'demo-belt-1.svg'];
         const rec = { category_id: catId, name: f.name.trim(), description: f.description || '', price, old_price: f.old_price ? parseInt(enD(f.old_price), 10) : null, stock, images, active: f.active === '0' ? 0 : 1, updated_at: now() };
         if (ex) { Object.assign(ex, rec); return prodOut(ex); }
         const np = { id: DB.seq.product++, created_at: now(), ...rec }; DB.products.push(np); return prodOut(np);

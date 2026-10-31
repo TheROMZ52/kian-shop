@@ -4,7 +4,7 @@ A Persian-first accessories shop with a real checkout and a SQLite backbone — 
 
 [فارسی](README.md) · [English](README.en.md)
 
-A Persian, right-to-left e-commerce store for belts, bags, and accessories. Built with Node.js and SQLite, with no paid third-party services or external CDN dependencies; fonts and icons are bundled with the project.
+A Persian, right-to-left e-commerce store for belts, stickers, and accessories. Built with Node.js and SQLite, with no paid third-party services or external CDN dependencies; fonts and icons are bundled with the project.
 
 ## Features
 

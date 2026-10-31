@@ -36,11 +36,22 @@ const ok = (name) => console.log(`  ✓ ${++n}. ${name}`);
   const ownerCk = cookie;
 
   // دسته و محصول
-  r = await call('GET', '/api/admin/categories'); assert.equal(r.status, 200); const cat = r.data[0].id; ok('دسته‌های پیش‌فرض');
+  r = await call('GET', '/api/admin/categories'); assert.equal(r.status, 200); const cat = r.data[0].id; assert.ok(r.data.some((c) => c.name === 'استیکر')); ok('دسته‌های پیش‌فرض شامل استیکر هستند');
+  await D.run('INSERT INTO categories(name,sort) VALUES(?,?)', 'کیف', 90);
+  await D.init();
+  assert.equal((await D.get('SELECT COUNT(*) n FROM categories WHERE name=?', 'کیف')).n, 0);
+  assert.ok(await D.get('SELECT id FROM categories WHERE name=?', 'استیکر')); ok('مهاجرت نام دسته قدیمی به استیکر');
+  const oldCat = (await D.run('INSERT INTO categories(name,sort) VALUES(?,?)', 'کیف', 91)).lastInsertRowid;
+  await D.run('INSERT INTO products(category_id,name,description,price,old_price,stock,images,active,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?)', oldCat, 'محصول آزمایشی قدیمی', '', 1000, null, 1, '[]', 1, 1, 1);
+  await D.init();
+  const stickerCat = await D.get('SELECT id FROM categories WHERE name=?', 'استیکر');
+  const moved = await D.get('SELECT category_id FROM products WHERE name=?', 'محصول آزمایشی قدیمی');
+  assert.equal(moved.category_id, stickerCat.id);
+  assert.equal((await D.get('SELECT COUNT(*) n FROM categories WHERE name=?', 'کیف')).n, 0); ok('ادغام دسته تکراری بدون از دست رفتن محصولات');
   const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==', 'base64');
   const mk = (name, price, stock, extra = {}) => { const f = new FormData(); f.set('name', name); f.set('price', price); f.set('stock', stock); f.set('category_id', cat); for (const [k, v] of Object.entries(extra)) f.set(k, v); f.append('images', new Blob([png], { type: 'image/png' }), 'a.png'); return f; };
   r = await call('POST', '/api/admin/products', null, { form: mk('کمربند چرم تست', '1200000', '5') }); assert.equal(r.status, 201); const p1 = r.data; assert.equal(p1.images.length, 1); ok('ساخت محصول با تصویر');
-  r = await call('POST', '/api/admin/products', null, { form: mk('کیف تست', '500000', '2') }); const p2 = r.data;
+  r = await call('POST', '/api/admin/products', null, { form: mk('استیکر تست', '500000', '2') }); const p2 = r.data;
   const bad = new FormData(); bad.set('name', 'x'); bad.set('price', '1'); bad.set('stock', '1'); bad.append('images', new Blob(['<script>alert(1)</script>'], { type: 'image/png' }), 'a.png');
   r = await call('POST', '/api/admin/products', null, { form: bad }); assert.equal(r.status, 400); ok('آپلود فایل غیرتصویری رد می‌شود');
   r = await fetch(base() + '/uploads/' + p1.images[0]); assert.equal(r.status, 200); ok('تصویر آپلودشده قابل نمایش است');
@@ -52,7 +63,7 @@ const ok = (name) => console.log(`  ✓ ${++n}. ${name}`);
   const custCk = cookie;
   r = await call('GET', '/api/admin/stats'); assert.equal(r.status, 403); ok('مشتری به پنل مدیریت دسترسی ندارد');
   r = await call('GET', '/api/products'); assert.equal(r.data.items.length, 2); ok('لیست محصولات');
-  r = await call('GET', '/api/products?q=' + encodeURIComponent('کیف')); assert.equal(r.data.items.length, 1); ok('جست‌وجو');
+  r = await call('GET', '/api/products?q=' + encodeURIComponent('استیکر')); assert.equal(r.data.items.length, 1); ok('جست‌وجو');
 
   const addr = { name: 'علی تست', phone: '09121234567', province: 'تهران', city: 'تهران', address: 'خیابان آزادی پلاک ۱۰ واحد ۲' };
   r = await call('POST', '/api/orders', { ...addr, items: [{ id: p1.id, qty: 99 }] }); assert.equal(r.status, 409); ok('سفارش بیش از موجودی رد می‌شود');
@@ -120,14 +131,14 @@ const ok = (name) => console.log(`  ✓ ${++n}. ${name}`);
   // ---- سئو ----
   const get = async (u) => { const x = await fetch(base() + u); return { status: x.status, text: await x.text(), type: x.headers.get('content-type') || '' }; };
   let g = await get('/'); assert.equal(g.status, 200); assert.ok(g.text.includes('<div id="app"')); assert.ok(g.text.indexOf('<base href="/">') > 0 && g.text.indexOf('<base href="/">') < g.text.indexOf('style.css')); assert.ok(g.text.includes('"@type":"Store"') && g.text.includes('"@type":"WebSite"')); assert.ok(/<link rel="canonical" href="http:\/\/127\.0\.0\.1:\d+\/">/.test(g.text)); ok('صفحه اصلی: متا، canonical و JSON-LD فروشگاه');
-  g = await get('/p/' + p2.id); assert.equal(g.status, 200); assert.ok(g.text.includes('<title>کیف تست | ')); assert.ok(g.text.includes('"@type":"Product"') && g.text.includes('"priceCurrency":"IRR"') && g.text.includes('"price":5000000') && g.text.includes('BreadcrumbList')); assert.ok(g.text.includes('og:image')); ok('صفحه محصول: عنوان یکتا، Product + Breadcrumb JSON-LD');
+  g = await get('/p/' + p2.id); assert.equal(g.status, 200); assert.ok(g.text.includes('<title>استیکر تست | ')); assert.ok(g.text.includes('"@type":"Product"') && g.text.includes('"priceCurrency":"IRR"') && g.text.includes('"price":5000000') && g.text.includes('BreadcrumbList')); assert.ok(g.text.includes('og:image')); ok('صفحه محصول: عنوان یکتا، Product + Breadcrumb JSON-LD');
   g = await get('/p/999999'); assert.equal(g.status, 404); assert.ok(g.text.includes('noindex')); ok('محصول ناموجود ← ۴۰۴ واقعی');
   g = await get('/no-such-page'); assert.equal(g.status, 404); ok('مسیر ناشناخته ← ۴۰۴ واقعی');
   g = await get('/cart'); assert.equal(g.status, 200); assert.ok(g.text.includes('noindex')); ok('سبد خرید noindex است');
   g = await get('/products?q=x'); assert.ok(g.text.includes('noindex,follow')); ok('نتیجه جست‌وجو noindex است');
   g = await get('/robots.txt'); assert.ok(g.text.includes('Disallow: /api/') && g.text.includes('Sitemap: http://')); ok('robots.txt');
   g = await get('/sitemap.xml'); assert.ok(g.type.includes('xml') && g.text.includes('/p/' + p2.id) && g.text.includes('<urlset')); ok('sitemap.xml شامل محصولات');
-  g = await get('/llms.txt'); assert.ok(g.text.startsWith('# ') && g.text.includes('کیف تست')); ok('llms.txt');
+  g = await get('/llms.txt'); assert.ok(g.text.startsWith('# ') && g.text.includes('استیکر تست')); ok('llms.txt');
   g = await get('/favicon.ico'); assert.equal(g.status, 200); ok('favicon.ico');
   r = await fetch(base() + '/app.js', { headers: { 'accept-encoding': 'gzip' } }); assert.equal(r.headers.get('content-encoding'), 'gzip'); ok('فشرده‌سازی gzip');
 
