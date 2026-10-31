@@ -42,7 +42,7 @@ const ok = (name) => console.log(`  ✓ ${++n}. ${name}`);
   assert.equal((await D.get('SELECT COUNT(*) n FROM categories WHERE name=?', 'کیف')).n, 0);
   assert.ok(await D.get('SELECT id FROM categories WHERE name=?', 'استیکر')); ok('مهاجرت نام دسته قدیمی به استیکر');
   const oldCat = (await D.run('INSERT INTO categories(name,sort) VALUES(?,?)', 'کیف', 91)).lastInsertRowid;
-  await D.run('INSERT INTO products(category_id,name,description,price,old_price,stock,images,active,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?)', oldCat, 'محصول آزمایشی قدیمی', '', 1000, null, 1, '[]', 1, 1, 1);
+  await D.run('INSERT INTO products(category_id,name,description,price,old_price,stock,images,active,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?)', oldCat, 'محصول آزمایشی قدیمی', '', 1000, null, 1, '[]', 0, 1, 1);
   await D.init();
   const stickerCat = await D.get('SELECT id FROM categories WHERE name=?', 'استیکر');
   const moved = await D.get('SELECT category_id FROM products WHERE name=?', 'محصول آزمایشی قدیمی');
