@@ -24,6 +24,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test
+      - run: npm run test:pg
       - run: node preview/build.js
       - uses: actions/upload-pages-artifact@v3
         with:
